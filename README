@@ -1,0 +1,15 @@
+                               gyazo.pl
+                               ========
+
+Installation
+------------
+
+  % ls
+  README          data            gyazo.pl        t
+  % mkdir data
+  % chmod ugo+w data
+  %
+
+Author
+------
+KATO Kazuyoshi <kzys@8-p.info>
