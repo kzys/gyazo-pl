@@ -1,14 +1,20 @@
                                gyazo.pl
                                ========
 
+gyazo.pl is a clone server of Gyazo <http://gyazo.com/>. This is
+private Gyazo only for members of a specfic community.
+
+
 Installation
 ------------
 
   % ls
   README          data            gyazo.pl        t
+  % echo DirectoryIndex gyazo.pl >> .htaccess
   % mkdir data
   % chmod ugo+w data
   %
+
 
 Author
 ------

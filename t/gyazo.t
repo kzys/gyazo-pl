@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 4;
+use Test::More tests => 5;
 
 require 'gyazo.pl'; ## no critic
 
@@ -20,4 +20,5 @@ my $dbh = open_database("/tmp/database.$$");
 ok($dbh);
 
 srand(0);
-is(create_alias(8), '6q3vksodv');
+is(create_alias(8), 'aK5RzMGm');
+is(length create_alias(8), 8);

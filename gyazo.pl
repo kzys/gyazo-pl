@@ -53,12 +53,12 @@ sub create_uri {
     return URI->new_abs($path, $uri);
 }
 
-my @CHARS = ('0'...'9', 'a'...'z');
+my @CHARS = ('0'...'9', 'a'...'z', 'A'...'Z');
 sub create_alias {
     my ($max) = @_;
 
     my $n = scalar @CHARS;
-    join '', map { $CHARS[ int(rand($n)) ]; } (0...$max);
+    join '', map { $CHARS[ int(rand($n)) ]; } (1...$max);
 }
 
 sub save_file {
@@ -70,7 +70,7 @@ sub save_file {
     }
 
     my $digest = Digest::MD5::md5_hex($data);
-    my $alias = create_alias(8);
+    my $alias = create_alias(4);
 
     my $dbh = open_database('data/index.db');
     $dbh->prepare(
@@ -83,7 +83,7 @@ sub save_file {
     print $file $data;
     close($file);
 
-    return create_uri("?alias=$alias");
+    return create_uri("?_=$alias");
 }
 
 sub entry_from_alias {
@@ -126,7 +126,7 @@ if (__FILE__ eq $0) {
             print STDERR "Error: $@";
             print "Error: $@";
         }
-    } elsif (my $alias = $cgi->param('alias')) {
+    } elsif (my $alias = $cgi->param('_')) {
         my ($type, $content) = entry_from_alias($alias);
         print $cgi->header($type);
         print $content;
