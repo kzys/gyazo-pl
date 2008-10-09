@@ -70,11 +70,12 @@ sub save_file {
     }
 
     my $digest = Digest::MD5::md5_hex($data);
+    my $alias = create_alias(8);
 
     my $dbh = open_database('data/index.db');
     $dbh->prepare(
         'insert into entries (digest, type, user, alias) values (?, "image/png", ?, ?)'
-        )->execute($digest, $args_ref->{id}, create_alias(8));
+        )->execute($digest, $args_ref->{id}, $alias);
     $dbh->disconnect;
 
     my $path = file(file(__FILE__)->dir, "data/$digest.png");
@@ -82,23 +83,53 @@ sub save_file {
     print $file $data;
     close($file);
 
-    return create_uri("data/$digest.png");
+    return create_uri("?alias=$alias");
+}
+
+sub entry_from_alias {
+    my ($alias) = @_;
+
+    my $type;
+    my $digest;
+
+    {
+        my $dbh = open_database('data/index.db');
+
+        my $st = $dbh->prepare('select * from entries where alias=?');
+        $st->execute($alias);
+
+        my $row = $st->fetchrow_hashref;
+        $type = $row->{type};
+        $digest = $row->{digest};
+    }
+
+    my $suffix = $type eq 'image/png' ? 'png' : 'unknown';
+    my $path = file(file(__FILE__)->dir, "data/$digest.$suffix");
+
+    return $type, scalar $path->slurp;
 }
 
 if (__FILE__ eq $0) {
     my $cgi = CGI->new;
-    my $id = $cgi->param('id');
 
-    my $uri = eval {
-        save_file({ id => $id, data => $cgi->param('imagedata') });
-    };
+    my $imagedata = $cgi->param('imagedata');
 
-    print $cgi->header('text/plain');
-    if (! $@) {
-        print "$uri";
-    } else {
-        print STDERR "Error: $@";
-        print "Error: $@";
+    if ($imagedata) {
+        my $uri = eval {
+            save_file({ id => $cgi->param('id'), data => $imagedata });
+        };
+
+        print $cgi->header('text/plain');
+        if (! $@) {
+            print "$uri";
+        } else {
+            print STDERR "Error: $@";
+            print "Error: $@";
+        }
+    } elsif (my $alias = $cgi->param('alias')) {
+        my ($type, $content) = entry_from_alias($alias);
+        print $cgi->header($type);
+        print $content;
     }
 }
 
