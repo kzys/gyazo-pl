@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 2;
+use Test::More tests => 4;
 
 require 'gyazo.pl'; ## no critic
 
@@ -15,3 +15,9 @@ is(create_uri('ccc/ddd.png',
                 SERVER_PORT => 3000,
                 REQUEST_URI => '/~alice/gyazo.pl' }),
    'http://example.com:3000/~alice/ccc/ddd.png');
+
+my $dbh = open_database("/tmp/database.$$");
+ok($dbh);
+
+srand(0);
+is(create_alias(8), '6q3vksodv');
