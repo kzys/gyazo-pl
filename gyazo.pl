@@ -7,14 +7,16 @@ use Digest::MD5;
 use Path::Class;
 
 sub create_uri {
-    my $port = $ENV{SERVER_PORT};
+    my ($env_ref) = @_;
+
+    my $port = $env_ref->{SERVER_PORT};
     if ($port != 80) {
         $port = ":$port";
     } else {
         $port = "";
     }
 
-    return "http://$ENV{SERVER_NAME}$port$ENV{REQUEST_URI}";
+    return join('', 'http://', $env_ref->{SERVER_NAME}, $port, $env_ref->{REQUEST_URI});
 }
 
 sub save_file {
@@ -33,17 +35,21 @@ sub save_file {
     return file(file(create_uri())->dir, "data/$digest.png");
 }
 
-my $cgi = CGI->new;
-my $id = $cgi->param('id'); # TODO: not used now.
+if (__FILE__ eq $0) {
+    my $cgi = CGI->new;
+    my $id = $cgi->param('id'); # TODO: not used now.
 
-my $uri = eval {
-    save_file($cgi->param('imagedata'));
-};
+    my $uri = eval {
+        save_file($cgi->param('imagedata'));
+    };
 
-print $cgi->header('text/plain');
-if (! $@) {
-    print "$uri";
-} else {
-    print STDERR "Error: $@";
-    print "Error: $@";
+    print $cgi->header('text/plain');
+    if (! $@) {
+        print "$uri";
+    } else {
+        print STDERR "Error: $@";
+        print "Error: $@";
+    }
 }
+
+1;
