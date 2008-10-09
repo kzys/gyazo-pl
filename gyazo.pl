@@ -5,9 +5,10 @@ use warnings;
 use CGI;
 use Digest::MD5;
 use Path::Class;
+use URI;
 
 sub create_uri {
-    my ($env_ref) = @_;
+    my ($path, $env_ref) = @_;
 
     if (! $env_ref) {
         $env_ref = \%ENV;
@@ -20,7 +21,10 @@ sub create_uri {
         $port = "";
     }
 
-    return join('', 'http://', $env_ref->{SERVER_NAME}, $port, $env_ref->{REQUEST_URI});
+    my $uri = URI->new(join('',
+                            'http://', $env_ref->{SERVER_NAME}, $port,
+                            $env_ref->{REQUEST_URI}));
+    return URI->new_abs($path, $uri);
 }
 
 sub save_file {
@@ -36,7 +40,7 @@ sub save_file {
     print $file $data;
     close($file);
 
-    return file(file(create_uri())->dir, "data/$digest.png");
+    return create_uri("data/$digest.png");
 }
 
 if (__FILE__ eq $0) {
