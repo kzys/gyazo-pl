@@ -1,5 +1,8 @@
+use strict;
+use warnings;
 use Test::More tests => 2;
-require 'gyazo.pl';
+
+require 'gyazo.pl'; ## no critic
 
 is(create_uri({ SERVER_NAME => 'localhost',
                 SERVER_PORT => 80,
