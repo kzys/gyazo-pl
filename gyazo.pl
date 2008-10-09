@@ -8,6 +8,9 @@ use Path::Class;
 use URI;
 use DBI;
 
+my @ALIAS_CHARS = ('0'...'9', 'a'...'z', 'A'...'Z');
+my $ALIAS_LENGTH = 4;
+
 sub create_database {
     my ($fn) = @_;
 
@@ -53,12 +56,11 @@ sub create_uri {
     return URI->new_abs($path, $uri);
 }
 
-my @CHARS = ('0'...'9', 'a'...'z', 'A'...'Z');
 sub create_alias {
     my ($max) = @_;
 
-    my $n = scalar @CHARS;
-    join '', map { $CHARS[ int(rand($n)) ]; } (1...$max);
+    my $n = scalar @ALIAS_CHARS;
+    join '', map { $ALIAS_CHARS[ int(rand($n)) ]; } (1...$max);
 }
 
 sub save_file {
@@ -70,7 +72,7 @@ sub save_file {
     }
 
     my $digest = Digest::MD5::md5_hex($data);
-    my $alias = create_alias(4);
+    my $alias = create_alias($ALIAS_LENGTH);
 
     my $dbh = open_database('data/index.db');
     $dbh->prepare(
@@ -86,22 +88,21 @@ sub save_file {
     return create_uri("?_=$alias");
 }
 
+sub query_with_alias {
+    my ($fn) = @_;
+    my $dbh = open_database($fn);
+
+    my $st = $dbh->prepare('select * from entries where alias=?');
+    $st->execute($alias);
+
+    my $row = $st->fetchrow_hashref;
+    return $row->{type}, $row->{digest};
+}
+
 sub entry_from_alias {
     my ($alias) = @_;
 
-    my $type;
-    my $digest;
-
-    {
-        my $dbh = open_database('data/index.db');
-
-        my $st = $dbh->prepare('select * from entries where alias=?');
-        $st->execute($alias);
-
-        my $row = $st->fetchrow_hashref;
-        $type = $row->{type};
-        $digest = $row->{digest};
-    }
+    my ($type, $digest) = query_with_alias('data/index.db', $alias);
 
     my $suffix = $type eq 'image/png' ? 'png' : 'unknown';
     my $path = file(file(__FILE__)->dir, "data/$digest.$suffix");
