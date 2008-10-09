@@ -9,6 +9,10 @@ use Path::Class;
 sub create_uri {
     my ($env_ref) = @_;
 
+    if (! $env_ref) {
+        $env_ref = \%ENV;
+    }
+
     my $port = $env_ref->{SERVER_PORT};
     if ($port != 80) {
         $port = ":$port";
